@@ -124,8 +124,8 @@ module RepoGit = struct
       all_common descendents' current'
         (descendents ++ current) (current -- descendents)
     in
-    let base = S.singleton (Git.SHA.of_hex pull_request.base.sha) in
-    let head = S.singleton (Git.SHA.of_hex pull_request.head.sha) in
+    let base = S.singleton (Git_unix.SHA_IO.of_hex pull_request.base.sha) in
+    let head = S.singleton (Git_unix.SHA_IO.of_hex pull_request.head.sha) in
     all_common base base head head >>= fun common ->
     let rec remove_older ancestors = fun s ->
       if S.is_empty s || S.is_empty ancestors ||
@@ -399,7 +399,7 @@ module PrChecks = struct
 
   let run pr gitstore =
     RepoGit.fetch pr gitstore >>= fun gitstore ->
-    let head = Git.SHA.of_hex pr.head.sha in
+    let head = Git_unix.SHA_IO.of_hex pr.head.sha in
     RepoGit.common_ancestor pr gitstore >>= fun ancestor ->
     lint ancestor head gitstore >>= fun (stlint,msglint) ->
     Lwt.catch (fun () ->
@@ -649,7 +649,7 @@ let () =
     >>= fun () -> check_loop gitstore
   in
   Lwt_main.run (Lwt.join [
-      RepoGit.get {user="ocaml";name="opam-repository"} >>= check_loop;
+      RepoGit.get {user="avsm";name="opam-repository"} >>= check_loop;
       Webhook_handler.server
         ~port:conf.Conf.port
         ~secret:conf.Conf.secret
